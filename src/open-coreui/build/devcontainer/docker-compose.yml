@@ -1,0 +1,9 @@
+services:
+  open-coreui:
+    container_name: open-coreui
+    restart: unless-stopped
+    networks:
+      - open-coreui-workspace-network
+networks:
+  open-coreui-workspace-network:
+    external: true

@@ -1,0 +1,76 @@
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "${LOG_MAX_SIZE:-10m}"
+    max-file: "${LOG_MAX_FILE:-3}"
+    compress: "${LOG_COMPRESS:-true}"
+
+services:
+  open-coreui-backend:
+    image: ${BACKEND_IMAGE:-localhost/open-coreui-backend}
+    container_name: open-coreui-backend
+    restart: unless-stopped
+    volumes:
+      - open-coreui:/app/data
+    logging: *default-logging
+    environment:
+      PORT: ${PORT:-8168}
+      DATABASE_URL: ${DATABASE_URL:-sqlite:///app/data/database.sqlite3}
+      UPLOAD_DIR: ${UPLOAD_DIR:-/app/data/uploads}
+      WEBUI_SECRET_KEY: ${WEBUI_SECRET_KEY}
+    networks:
+      - open-coreui-network
+
+  open-coreui-frontend:
+    image: ${FRONTEND_IMAGE:-localhost/open-coreui-frontend}
+    container_name: open-coreui-frontend
+    restart: unless-stopped
+    logging: *default-logging
+    depends_on:
+      - open-coreui-backend
+    networks:
+      - open-coreui-network
+
+  open-coreui:
+    image: ferronserver/ferron:2
+    logging: *default-logging
+    depends_on:
+      - open-coreui-backend
+      - open-coreui-frontend
+    configs:
+      - source: open-coreui-reverse
+        target: /etc/ferron.kdl
+    networks:
+      - open-coreui-network
+
+configs:
+  open-coreui-reverse:
+    content: |
+      *:${PORT:-8168} {
+          location "/api" {
+              proxy "http://open-coreui-backend:${PORT:-8168}"
+          }
+          location "/openai" {
+              proxy "http://open-coreui-backend:${PORT:-8168}"
+          }
+          location "/oauth" {
+              proxy "http://open-coreui-backend:${PORT:-8168}"
+          }
+          location "/cache" {
+              proxy "http://open-coreui-backend:${PORT:-8168}"
+          }
+          location "/socket.io" {
+              proxy "http://open-coreui-backend:${PORT:-8168}"
+          }
+          location "/" {
+              proxy "http://open-coreui-frontend:${PORT:-8168}"
+          }
+      }
+
+volumes:
+  open-coreui:
+    name: open-coreui
+
+networks:
+  open-coreui-network:
+    name: open-coreui-network

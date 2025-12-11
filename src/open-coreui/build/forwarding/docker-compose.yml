@@ -1,0 +1,6 @@
+services:
+  open-coreui:
+    container_name: open-coreui
+    restart: unless-stopped
+    ports:
+      - 8168:8168

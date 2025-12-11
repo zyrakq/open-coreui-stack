@@ -1,0 +1,4 @@
+services:
+  open-coreui:
+    ports:
+      - 8168:8168

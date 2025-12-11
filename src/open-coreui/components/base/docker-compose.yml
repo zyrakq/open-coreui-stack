@@ -1,0 +1,4 @@
+services:
+  open-coreui:
+    container_name: open-coreui
+    restart: unless-stopped

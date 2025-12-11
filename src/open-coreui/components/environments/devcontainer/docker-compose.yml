@@ -1,0 +1,8 @@
+services:
+  open-coreui:
+    networks:
+      - open-coreui-workspace-network
+
+networks:
+  open-coreui-workspace-network:
+    external: true
